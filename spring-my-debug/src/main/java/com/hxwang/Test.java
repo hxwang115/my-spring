@@ -1,4 +1,4 @@
-package com.hxwnag;
+package com.hxwang;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -15,8 +15,9 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 public class Test {
 	public static void main(String[] args) {
-		ClassPathXmlApplicationContext cs = new ClassPathXmlApplicationContext();
-		Person person = (Person) cs.getBean("Person");
+		ClassPathXmlApplicationContext cs = new ClassPathXmlApplicationContext("applicationContext.xml");
+		Person person = (Person) cs.getBean("person");
+		System.out.println(person);
 		System.out.println("222");
 
 	}
