@@ -178,6 +178,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	private ConfigurableEnvironment environment;
 
 	/**
+	 * 修改 bean定义信息的集合
 	 * BeanFactoryPostProcessors to apply on refresh.
 	 */
 	private final List<BeanFactoryPostProcessor> beanFactoryPostProcessors = new ArrayList<>();
@@ -188,9 +189,12 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	private long startupDate;
 
 	/**
+	 *
+	 * 设置当前容器是激活状态还是关闭状态
+	 *
 	 * Flag that indicates whether this context is currently active.
 	 */
-	// 给当前活的对象打标
+
 	private final AtomicBoolean active = new AtomicBoolean();
 
 	/**
@@ -199,6 +203,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	private final AtomicBoolean closed = new AtomicBoolean();
 
 	/**
+	 * 加锁，同步器 刷新和销毁过程中不能中断
 	 * Synchronization monitor for the "refresh" and "destroy".
 	 */
 	private final Object startupShutdownMonitor = new Object();
@@ -366,6 +371,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * a custom {@link ConfigurableEnvironment} implementation.
 	 */
 	protected ConfigurableEnvironment createEnvironment() {
+		// 标准的环境
 		return new StandardEnvironment();
 	}
 
@@ -510,6 +516,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @see org.springframework.core.io.support.PathMatchingResourcePatternResolver
 	 */
 	protected ResourcePatternResolver getResourcePatternResolver() {
+		// 创建一个资源模式解析器（用来解析xml配置文件）
 		return new PathMatchingResourcePatternResolver(this);
 	}
 
@@ -531,6 +538,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	public void setParent(@Nullable ApplicationContext parent) {
 		this.parent = parent;
 		if (parent != null) {
+			// 获取环境对象
 			Environment parentEnvironment = parent.getEnvironment();
 			if (parentEnvironment instanceof ConfigurableEnvironment) {
 				getEnvironment().merge((ConfigurableEnvironment) parentEnvironment);
@@ -574,10 +582,20 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		synchronized (this.startupShutdownMonitor) {
 			StartupStep contextRefresh = this.applicationStartup.start("spring.context.refresh");
 
+			/**
+			 * 容器刷新前准备工作
+			 * 1、设置容器启动时间
+			 * 2、设置活跃状态true
+			 * 3、设置关闭状态false
+			 * 4、获取Environment对象，加载当前系统属性值到Environment对象中
+			 * 5、准备监听器对象和事件集合对象
+			 */
 			// Prepare this context for refreshing. 准备刷新
 			prepareRefresh();
 
 			// Tell the subclass to refresh the internal bean factory.
+			// 创建容器对象 DefaultListableBeanfactory
+			// 加载xml配置文件的属性值到当前工厂中最重要的就是BeanDefinition
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
@@ -660,24 +678,29 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			}
 		}
 
-		// Initialize any placeholder property sources in the context environment. 初始化属性源
+		// Initialize any placeholder property sources in the context environment.
+		// 留给子类实现，初始化属性源
 		initPropertySources();
 
 		// Validate that all properties marked as required are resolvable:
 		// see ConfigurablePropertyResolver#setRequiredProperties
+		// 创建环境对象，验证需要的属性文件是否都已经放入环境中
 		getEnvironment().validateRequiredProperties();
 
 		// Store pre-refresh ApplicationListeners...
+		// 判断刷新前的应用程序监听器是否为空，如果为空则将监听器添加到此集合中
 		if (this.earlyApplicationListeners == null) {
 			this.earlyApplicationListeners = new LinkedHashSet<>(this.applicationListeners);
 		} else {
 			// Reset local application listeners to pre-refresh state.
+			// 如果不为空则清空集合
 			this.applicationListeners.clear();
 			this.applicationListeners.addAll(this.earlyApplicationListeners);
 		}
 
 		// Allow for the collection of early ApplicationEvents,
 		// to be published once the multicaster is available...
+		// 创建刷新前的监听器事件集合
 		this.earlyApplicationEvents = new LinkedHashSet<>();
 	}
 
@@ -699,6 +722,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @see #getBeanFactory()
 	 */
 	protected ConfigurableListableBeanFactory obtainFreshBeanFactory() {
+		// 初始化BeanFactory 并进行xml文件读取，将得到的BeanFactory 记录在当前实体属性中
 		refreshBeanFactory();
 		return getBeanFactory();
 	}

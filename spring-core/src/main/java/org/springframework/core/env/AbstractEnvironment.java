@@ -16,22 +16,17 @@
 
 package org.springframework.core.env;
 
-import java.security.AccessControlException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.SpringProperties;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+
+import java.security.AccessControlException;
+import java.util.*;
 
 /**
  * Abstract base class for {@link Environment} implementations. Supports the notion of
@@ -64,6 +59,7 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 	 * with strict SecurityManager settings and AccessControlExceptions warnings.
 	 * @see #suppressGetenvAccess()
 	 */
+	// 设置忽略的环境配置
 	public static final String IGNORE_GETENV_PROPERTY_NAME = "spring.getenv.ignore";
 
 	/**
@@ -75,6 +71,8 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 	 * {@code SPRING_PROFILES_ACTIVE}.
 	 * @see ConfigurableEnvironment#setActiveProfiles
 	 */
+	// 那个文件是激活的
+
 	public static final String ACTIVE_PROFILES_PROPERTY_NAME = "spring.profiles.active";
 
 	/**
@@ -234,6 +232,7 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 	 * @see PropertySourcesPropertyResolver
 	 * @see org.springframework.context.ApplicationContextInitializer
 	 */
+	// 父类实现为空
 	protected void customizePropertySources(MutablePropertySources propertySources) {
 	}
 
@@ -439,7 +438,7 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	public Map<String, Object> getSystemProperties() {
 		try {
-			return (Map) System.getProperties();
+			return (Map) System.getProperties(); // 获取系统的属性值
 		}
 		catch (AccessControlException ex) {
 			return (Map) new ReadOnlySystemAttributesMap() {
@@ -468,7 +467,7 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 			return Collections.emptyMap();
 		}
 		try {
-			return (Map) System.getenv();
+			return (Map) System.getenv(); // 设置系统的环境值
 		}
 		catch (AccessControlException ex) {
 			return (Map) new ReadOnlySystemAttributesMap() {
